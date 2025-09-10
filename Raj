@@ -1,4 +1,193 @@
-hii 
-this is RAJASHEKHAR 
-studying in Aditya degree college 
-bsc computer science 
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Basic Web App — Beginner HTML</title>
+  <style>
+    /* Simple, beginner-friendly CSS */
+    :root{
+      --accent:#3478f6;
+      --muted:#666;
+      --card:#fff;
+      --bg:#f4f7fb;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);}
+    .container{max-width:900px;margin:32px auto;padding:20px;}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:1.4rem;margin:0;color:#111}
+    nav a{margin-left:10px;color:var(--accent);text-decoration:none}
+    .card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(20,30,40,0.06)}
+
+    /* layout for main area */
+    .grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+    @media (max-width:800px){.grid{grid-template-columns:1fr}}
+
+    /* To-Do list styles */
+    .todo-input{display:flex;gap:8px;margin-bottom:12px}
+    input[type=text]{flex:1;padding:10px;border-radius:8px;border:1px solid #e0e6ee}
+    button{padding:10px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+    ul.todo-list{list-style:none;padding:0;margin:0}
+    ul.todo-list li{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;border:1px solid #f0f3f8;margin-bottom:8px}
+    .todo-left{display:flex;align-items:center;gap:10px}
+    .todo-left input[type=checkbox]{width:18px;height:18px}
+    .todo-text.done{text-decoration:line-through;color:var(--muted)}
+    .small{font-size:0.9rem;color:var(--muted)}
+
+    /* form styles */
+    form.contact-form{display:flex;flex-direction:column;gap:8px}
+    form input, form textarea{padding:10px;border-radius:8px;border:1px solid #e0e6ee}
+    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:0.9rem}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Basic Web App <span class="small">(Beginner HTML + JS)</span></h1>
+      <nav>
+        <a href="#todo">To‑Do</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </header>
+
+    <main class="grid">
+      <!-- LEFT: main interactive area -->
+      <section class="card" id="todo">
+        <h2>To‑Do List</h2>
+        <p class="small">Add tasks, mark done, and they will be saved in your browser.</p>
+
+        <div class="todo-input" aria-label="add-todo">
+          <input id="taskInput" type="text" placeholder="Add a new task (e.g. Buy groceries)" />
+          <button id="addBtn">Add</button>
+        </div>
+
+        <ul id="tasks" class="todo-list" aria-live="polite"></ul>
+
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button id="clearCompleted">Clear completed</button>
+          <button id="clearAll" style="background:#e74c3c">Clear all</button>
+        </div>
+      </section>
+
+      <!-- RIGHT: info + contact form -->
+      <aside class="card">
+        <h3>About this app</h3>
+        <p class="small">This is a simple single-file example using only HTML, CSS and a little JavaScript. Great for beginners to edit and learn.</p>
+
+        <h4>Contact (client-side only)</h4>
+        <form id="contactForm" class="contact-form" action="#" onsubmit="return false;">
+          <input id="name" type="text" placeholder="Your name" required />
+          <input id="email" type="email" placeholder="you@example.com" required />
+          <textarea id="message" rows="4" placeholder="Message" required></textarea>
+          <button id="sendContact">Send</button>
+        </form>
+        <p id="contactResp" class="small" aria-live="polite"></p>
+      </aside>
+    </main>
+
+    <footer class="card">
+      <p class="small">Tip: open browser console (F12) to see logs. Edit the file to customize colors and text.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Simple To-Do logic using localStorage
+    const taskInput = document.getElementById('taskInput');
+    const addBtn = document.getElementById('addBtn');
+    const tasksUl = document.getElementById('tasks');
+
+    function loadTasks(){
+      const raw = localStorage.getItem('basic_todo_tasks');
+      return raw ? JSON.parse(raw) : [];
+    }
+    function saveTasks(tasks){
+      localStorage.setItem('basic_todo_tasks', JSON.stringify(tasks));
+    }
+
+    function render(){
+      const tasks = loadTasks();
+      tasksUl.innerHTML = '';
+      if(tasks.length === 0){
+        tasksUl.innerHTML = '<li class="small">No tasks yet — add one above!</li>';
+        return;
+      }
+      tasks.forEach((t, i) => {
+        const li = document.createElement('li');
+        const left = document.createElement('div');
+        left.className = 'todo-left';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = t.done;
+        cb.addEventListener('change', ()=>{
+          const all = loadTasks();
+          all[i].done = cb.checked;
+          saveTasks(all);
+          render();
+        });
+
+        const text = document.createElement('span');
+        text.textContent = t.text;
+        text.className = t.done ? 'todo-text done' : 'todo-text';
+
+        left.appendChild(cb);
+        left.appendChild(text);
+
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.style.background = '#f6f7fb';
+        del.addEventListener('click', ()=>{
+          const all = loadTasks();
+          all.splice(i,1);
+          saveTasks(all);
+          render();
+        });
+
+        li.appendChild(left);
+        li.appendChild(del);
+        tasksUl.appendChild(li);
+      })
+    }
+
+    addBtn.addEventListener('click', ()=>{
+      const text = taskInput.value.trim();
+      if(!text) return alert('Please type a task');
+      const all = loadTasks();
+      all.push({text, done:false, created:Date.now()});
+      saveTasks(all);
+      taskInput.value = '';
+      render();
+    });
+
+    document.getElementById('clearCompleted').addEventListener('click', ()=>{
+      const all = loadTasks().filter(t => !t.done);
+      saveTasks(all);
+      render();
+    });
+    document.getElementById('clearAll').addEventListener('click', ()=>{
+      if(confirm('Clear all tasks?')){
+        saveTasks([]);
+        render();
+      }
+    });
+
+    // contact form (client-side demo only)
+    document.getElementById('contactForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const message = document.getElementById('message').value.trim();
+      // In a real app you'd send this to a server. Here we just show a message.
+      document.getElementById('contactResp').textContent = `Thanks ${name}! (Demo only — no email sent)`;
+      console.log('Contact submitted', {name,email,message});
+      document.getElementById('contactForm').reset();
+    });
+
+    // initial render
+    render();
+  </script>
+</body>
+</html>
+
